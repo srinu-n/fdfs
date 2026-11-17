@@ -76,7 +76,15 @@ sudo -u postgres psql -c "CREATE USER fdfs WITH PASSWORD 'FdfsPass123';"
 validate $? "creating the fdfs user for app"
 
 
-sudo -u postgres psql -c "CREATE DATABASE fdfs OWNER fdfs;"
+sudo -u postgres psql -tAc "SELECT 1 FROM pg_roles WHERE rolname='fdfs'" | grep -q 1
+
+if [ $? -eq 0 ]; then
+    echo "the user is already there no need to create the user"
+else
+    echo "we need to to create user"
+
+    sudo -u postgres psql -c "CREATE DATABASE fdfs OWNER fdfs;"
+fi
 
 validate $? "creating the fdfs db for app"
 
