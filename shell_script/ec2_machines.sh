@@ -41,13 +41,14 @@ fi
 common_sg=$(aws ec2 describe-security-groups --filters "Name=vpc-id,Values=vpc-0bf3a8f73da50ede9" "Name=group-name,Values=fdfs-common-sg" --region us-east-1 --query "SecurityGroups[*].GroupId" --output text)
 
 if [ -z "${common_sg}" ];then
-    echo " the common sg is already found no need to create"
-else
     echo " the common sg is not there lets create one"
      aws ec2 create-security-group \
     --group-name fdfs-common-sg \
     --description "Security group to enable ssh" \
     --vpc-id ${VPC_ID}
+else
+    echo " the common sg is already found no need to create"
+
 fi
 
 # need to get the id so again i need to call this
@@ -84,7 +85,8 @@ if [ $1 == "create" ]; then
         if [ -z "$running_instance_id" ]; then
             echo -e "${G}[INFO $(date +"%Y-%m-%d %H:%M:%S")] Instance not found. Creating EC2 machine: ${machine}.${N}"
 
-            aws ec2 run-instances --image-id "${AMI_ID}" --count 1 --instance-type t3.micro --key-name "${KEY_PAIR}" --security-group-ids "${sg_group_id}" "${common_sg}" --subnet-id "${SUBNET_ID}" --tag-specifications "ResourceType=instance,Tags=[{Key=Name,Value=${PREFIX}-${machine}}]"
+            aws ec2 run-instances --image-id "${AMI_ID}" --count 1 --instance-type t3.micro --key-name "${KEY_PAIR}" --security-group-ids "${sg_group_id}" "${common_sg}" --subnet-id "${SUBNET_ID}" --user-data file://user-data.sh
+            --tag-specifications "ResourceType=instance,Tags=[{Key=Name,Value=${PREFIX}-${machine}}]"
 
             echo -e "${G}[INFO $(date +"%Y-%m-%d %H:%M:%S")] Waiting for instance to become available.${N}"
 
