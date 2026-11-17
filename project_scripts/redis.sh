@@ -12,6 +12,8 @@ if [ $(id -u) -ne 0 ];then
 fi
 
 validate () {
+
+        if [ $1 -eq 0 ];then
         echo  " [SUCCESS  $(date +"%F %T")] $2 "
     
     else
