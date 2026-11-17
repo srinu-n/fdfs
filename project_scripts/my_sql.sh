@@ -1,5 +1,11 @@
 #!/bin/bash
 
+
+set -eE -o pipefail
+
+trap 'echo "Error on line $LINENO: Command \"$BASH_COMMAND\" exited with status $?"' ERR
+
+
 # we are going to deploy the postgreql using this.
 
 R="\e[31m"
