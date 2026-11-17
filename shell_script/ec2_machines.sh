@@ -91,7 +91,7 @@ if [ $1 == "create" ]; then
         if [ -z "$running_instance_id" ]; then
             echo -e "${G}[INFO $(date +"%Y-%m-%d %H:%M:%S")] Instance not found. Creating EC2 machine: ${machine}.${N}"
 
-            aws ec2 run-instances --image-id "${AMI_ID}" --count 1 --instance-type t3.micro --key-name "${KEY_PAIR}" --security-group-ids "${sg_group_id}" "${common_sg}" --subnet-id "${SUBNET_ID}" --user-data file://user_data.sh
+            aws ec2 run-instances --image-id "${AMI_ID}" --count 1 --instance-type t3.micro --key-name "${KEY_PAIR}" --security-group-ids "${sg_group_id}" "${common_sg}" --subnet-id "${SUBNET_ID}" --user-data file://user_data.sh  \
             --tag-specifications "ResourceType=instance,Tags=[{Key=Name,Value=${PREFIX}-${machine}}]"
 
             echo -e "${G}[INFO $(date +"%Y-%m-%d %H:%M:%S")] Waiting for instance to become available.${N}"
