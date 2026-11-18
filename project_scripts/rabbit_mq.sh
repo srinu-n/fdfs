@@ -48,10 +48,9 @@ validate $? "systemctl enable --now rabbitmq-server"
 
 # check the user is there or not
 
-sudo rabbitmqctl authenticate_user fdfs 'FdfsPass123'
 
 
-if [ $? -eq 0 ]; then 
+if sudo rabbitmqctl authenticate_user fdfs 'FdfsPass123'; then 
     echo "user is already there no need to create the user and set permissions again"
 else
     echo " user not found creating user"
