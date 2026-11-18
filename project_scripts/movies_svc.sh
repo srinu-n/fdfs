@@ -76,6 +76,8 @@ chown -R fdfs:fdfs /opt/fdfs/movie-service
 
 mkdir -p /etc/fdfs
 
+touch /etc/fdfs/movie-service.env
+
 cp movies_svc_env.file /etc/fdfs/movie-service.env
 
 chmod 600 /etc/fdfs/movie-service.env
