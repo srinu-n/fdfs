@@ -62,17 +62,14 @@ mkdir -p /opt/fdfs/movie-service
 validate $? "create the directory for movie svc"
 
 
-if ls -l /tmp/movie-service.zip; then 
-    echo " will deleting the old and downlaod againjust to be safe"
-    curl -o /tmp/movie-service.zip https://fdfs-artifacts-30b67175.s3.amazonaws.com/movie-service-v1.zip
+curl -o /tmp/movie-service.zip https://fdfs-artifacts-30b67175.s3.amazonaws.com/movie-service-v1.zip
 
-    unzip -o /tmp/movie-service.zip -d /opt/fdfs/movie-service
+validate $? "downloading the code"
 
-else
-     echo " there is no code itself probably running the script first downloading the code here"
-     curl -o /tmp/movie-service.zip https://fdfs-artifacts-30b67175.s3.amazonaws.com/movie-service-v1.zip
-     unzip -o /tmp/movie-service.zip -d /opt/fdfs/movie-service
-fi
+unzip -o /tmp/movie-service.zip -d /opt/fdfs/movie-service
+validate $? "downloading the code"
+
+
 
 validate $? "downloading the code"
 
@@ -94,7 +91,7 @@ mkdir -p /etc/fdfs
 
 validate $? "create the /etc/fdfs folder"
 
-if ls -l  /etc/fdfs/movie-service.env; then
+if  [ -f "/etc/fdfs/movie-service.env" ]; then
     echo " the file already present"
 else
     echo " the service file not present"
@@ -125,7 +122,10 @@ validate $? "copying the systemd service file"
 systemctl daemon-reload
 validate $? "daemon reload"
 
-systemctl enable --now fdfs-movie-service
+systemctl enable  --now fdfs-movie-service
 validate $? "systemctl enabling"
+
+systemctl restart fdfs-movie-service
+validate $? "re-starting the svc"
 
 # systemctl status fdfs-movie-service --no-pager
