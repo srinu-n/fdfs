@@ -46,15 +46,19 @@ systemctl enable --now rabbitmq-server
 
 validate $? "systemctl enable --now rabbitmq-server"
 
-# check the package is installed or not
+# check the user is there or not
 
-rabbitmqctl add_user fdfs FdfsPass123
+sudo rabbitmqctl authenticate_user fdfs 'FdfsPass123'
 
-validate $? "rabbitmqctl add_user fdfs FdfsPass123"
 
-rabbitmqctl set_permissions -p / fdfs ".*" ".*" ".*"
+if [ $? -eq 0 ]; then 
+    echo "user is already there no need to create the user and set permissions again"
+else
+    echo " user not found creating user"
+     rabbitmqctl add_user fdfs FdfsPass123
+    rabbitmqctl set_permissions -p / fdfs ".*" ".*" ".*"
+fi
 
-validate $? "rabbitmqctl set_permissions -p / fdfs ".*" ".*" ".*""
 
 
 # we need to update our app server pvt ips once we deployed 
