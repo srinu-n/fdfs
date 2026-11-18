@@ -1,0 +1,7 @@
+DB_HOST=fdfs-postgres.srinun.in
+DB_PORT=5432
+DB_NAME=fdfs
+DB_USER=fdfs
+DB_PASSWORD=FdfsPass123
+REDIS_HOST=fdfs-redis.srinun.in
+REDIS_PORT=6379

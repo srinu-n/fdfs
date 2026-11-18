@@ -2,22 +2,25 @@
 
 set -eE -o pipefail
 
-trap 'echo "Error on line $LINENO: Command \"$BASH_COMMAND\" exited with status $?"' ERR
+# colours
+R="\e[31m"   # red    - errors
+G="\e[32m"   # green  - success
+N="\e[0m"    # reset to normal colour
+
+trap 'echo -e "${R}Error on line $LINENO: Command \"$BASH_COMMAND\" exited with status $?${N}"' ERR
 
 # check the user is root or not
 
 if [ $(id -u) -ne 0 ];then
-    echo " please run with the sudo previlages"
+    echo -e "${R} [ERROR    $(date +"%F %T")] please run the script with root privileges (sudo)${N}"
     exit 1
 fi
 
 validate () {
-
-        if [ $1 -eq 0 ];then
-        echo  " [SUCCESS  $(date +"%F %T")] $2 "
-    
+    if [ $1 -eq 0 ];then
+        echo -e "${G} [SUCCESS  $(date +"%F %T")] $2${N}"
     else
-        echo  "$ [ failed  $(date +"%F %T")] $2"
+        echo -e "${R} [FAILED   $(date +"%F %T")] $2${N}"
         exit 1
     fi
 }
@@ -28,22 +31,22 @@ validate $? "apt update"
 
 apt install -y redis-server
 
-validate $? "apt install redis-server"
+validate $? "install redis-server"
 
 
 
 sed -i 's/^bind 127.0.0.1 -::1/bind 0.0.0.0/' /etc/redis/redis.conf
 
-validate $? "open the redis from local to everyone"
+validate $? "redis now listens on all interfaces (bind 0.0.0.0)"
 
 sed -i 's/^protected-mode yes/protected-mode no/' /etc/redis/redis.conf
 
-validate $? "disable the protection mode for redis"
+validate $? "protected mode disabled, so other servers can connect"
 
 systemctl restart redis-server
 
-validate $? "restart the server"
+validate $? "restart redis-server"
 
 systemctl enable redis-server
 
-validate $? "enable the server"
+validate $? "enable redis-server to start on boot"
