@@ -12,6 +12,7 @@ R="\e[31m"   # red    - errors
 G="\e[32m"   # green  - success / info
 Y="\e[33m"   # yellow - skipping
 N="\e[0m"    # reset to normal colour
+project_folder=$(pwd)
 
 trap 'echo -e "${R}Error on line $LINENO: Command \"$BASH_COMMAND\" exited with status $?${N}"' ERR
 
@@ -78,7 +79,7 @@ mkdir -p /etc/fdfs
 
 touch /etc/fdfs/movie-service.env
 
-cp "$(pwd)/movies_svc_env.file" /etc/fdfs/movie-service.env
+cp "${project_folder}/movies_svc_env.file" /etc/fdfs/movie-service.env
 
 chmod 600 /etc/fdfs/movie-service.env
 
@@ -86,7 +87,7 @@ PGPASSWORD=FdfsPass123 psql -h fdfs-postgre.srinun.in -U fdfs -d fdfs -f /opt/fd
 
 PGPASSWORD=FdfsPass123 psql -h fdfs-postgre.srinun.in -U fdfs -d fdfs -f /opt/fdfs/movie-service/db/seed.sql
 
-cp "$(pwd)/movies_svc_systemd.file" /etc/systemd/system/fdfs-movie-service.service
+cp "${project_folder}/movies_svc_systemd.file" /etc/systemd/system/fdfs-movie-service.service
 
 systemctl daemon-reload
 
