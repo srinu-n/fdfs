@@ -78,9 +78,9 @@ validate $? "systemctl enable postgresql"
 
 
 # create the fdfs user only if it does not exist
-sudo -u postgres psql -tAc "SELECT 1 FROM pg_roles WHERE rolname='fdfs'" | grep -q 1
+# sudo -u postgres psql -tAc "SELECT 1 FROM pg_roles WHERE rolname='fdfs'" | grep -q 1
 
-if [ $? -eq 0 ]; then
+if sudo -u postgres psql -tAc "SELECT 1 FROM pg_roles WHERE rolname='fdfs'" | grep -q 1; then
     echo -e "${Y} [SKIPPING $(date +"%F %T")] fdfs user already exists ${N}"
 else
     sudo -u postgres psql -c "CREATE USER fdfs WITH PASSWORD 'FdfsPass123';"
@@ -88,9 +88,9 @@ else
 fi
 
 # create the fdfs database only if it does not exist
-sudo -u postgres psql -tAc "SELECT 1 FROM pg_database WHERE datname='fdfs'" | grep -q 1
+# sudo -u postgres psql -tAc "SELECT 1 FROM pg_database WHERE datname='fdfs'" | grep -q 1
 
-if [ $? -eq 0 ]; then
+if sudo -u postgres psql -tAc "SELECT 1 FROM pg_database WHERE datname='fdfs'" | grep -q 1; then
     echo -e "${Y} [SKIPPING $(date +"%F %T")] fdfs database already exists ${N}"
 else
     sudo -u postgres psql -c "CREATE DATABASE fdfs OWNER fdfs;"
