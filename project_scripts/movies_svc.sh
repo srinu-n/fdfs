@@ -59,38 +59,73 @@ fi
 
 mkdir -p /opt/fdfs/movie-service
 
+validate $? "create the directory for movie svc"
 
-curl -o /tmp/movie-service.zip https://fdfs-artifacts-30b67175.s3.amazonaws.com/movie-service-v1.zip
 
-cd /opt/fdfs/movie-service
+if ls -l /tmp/movie-service.zip; then 
+    echo " will deleting the old and downlaod againjust to be safe"
+    curl -o /tmp/movie-service.zip https://fdfs-artifacts-30b67175.s3.amazonaws.com/movie-service-v1.zip
 
-unzip -o /tmp/movie-service.zip
+    unzip -o /tmp/movie-service.zip -d /opt/fdfs/movie-service
+
+else
+     echo " there is no code itself probably running the script first downloading the code here"
+     curl -o /tmp/movie-service.zip https://fdfs-artifacts-30b67175.s3.amazonaws.com/movie-service-v1.zip
+     unzip -o /tmp/movie-service.zip -d /opt/fdfs/movie-service
+fi
+
+validate $? "downloading the code"
 
 
 # create the virtual environment
 
 python3 -m venv /opt/fdfs/movie-service/venv
 
+validate $? "python3 -m venv /opt/fdfs/movie-service/venv"
+
 /opt/fdfs/movie-service/venv/bin/pip install -r /opt/fdfs/movie-service/requirements.txt
+validate $? "installing requirements.txt"
 
 chown -R fdfs:fdfs /opt/fdfs/movie-service
 
+validate $? "change the owner of the files"
+
 mkdir -p /etc/fdfs
 
-touch /etc/fdfs/movie-service.env
+validate $? "create the /etc/fdfs folder"
+
+if ls -l  /etc/fdfs/movie-service.env; then
+    echo " the file already present"
+else
+    echo " the service file not present"
+    touch /etc/fdfs/movie-service.env  && chmod 600 "$_"  # this will automatically calls the last command argument
+fi
+
+validate $? "creating the env file"
+
+
+# since we can not say when the env values will change it always better to run the copy statement #no issues
 
 cp "${project_folder}/movies_svc_env.file" /etc/fdfs/movie-service.env
 
-chmod 600 /etc/fdfs/movie-service.env
+validate $? "copy the env file"
+
+
 
 PGPASSWORD=FdfsPass123 psql -h fdfs-postgres.srinun.in -U fdfs -d fdfs -f /opt/fdfs/movie-service/db/schema.sql
+validate $? "importing the schema to db"
 
 PGPASSWORD=FdfsPass123 psql -h fdfs-postgres.srinun.in -U fdfs -d fdfs -f /opt/fdfs/movie-service/db/seed.sql
 
+validate $? "importing the seed data to db"
+
 cp "${project_folder}/movies_svc_systemd.file" /etc/systemd/system/fdfs-movie-service.service
+validate $? "copying the systemd service file"
 
 systemctl daemon-reload
+validate $? "daemon reload"
 
 systemctl enable --now fdfs-movie-service
+validate $? "systemctl enabling"
 
-systemctl status fdfs-movie-service --no-pager
+# systemctl status fdfs-movie-service --no-pager
