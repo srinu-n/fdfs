@@ -83,7 +83,7 @@ cp "${project_folder}/movies_svc_env.file" /etc/fdfs/movie-service.env
 
 chmod 600 /etc/fdfs/movie-service.env
 
-PGPASSWORD=FdfsPass123 psql -h fdfs-postgre.srinun.in -U fdfs -d fdfs -f /opt/fdfs/movie-service/db/schema.sql
+PGPASSWORD=FdfsPass123 psql -h fdfs-postgres.srinun.in -U fdfs -d fdfs -f /opt/fdfs/movie-service/db/schema.sql
 
 PGPASSWORD=FdfsPass123 psql -h fdfs-postgres.srinun.in -U fdfs -d fdfs -f /opt/fdfs/movie-service/db/seed.sql
 
