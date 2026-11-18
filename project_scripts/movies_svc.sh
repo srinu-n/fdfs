@@ -67,11 +67,10 @@ curl -o /tmp/movie-service.zip https://fdfs-artifacts-30b67175.s3.amazonaws.com/
 validate $? "downloading the code"
 
 unzip -o /tmp/movie-service.zip -d /opt/fdfs/movie-service
-validate $? "downloading the code"
+validate $? "extracting  the code"
 
 
 
-validate $? "downloading the code"
 
 
 # create the virtual environment
