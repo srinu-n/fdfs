@@ -78,7 +78,7 @@ mkdir -p /etc/fdfs
 
 touch /etc/fdfs/movie-service.env
 
-cp movies_svc_env.file /etc/fdfs/movie-service.env
+cp "$(pwd)/movies_svc_env.file" /etc/fdfs/movie-service.env
 
 chmod 600 /etc/fdfs/movie-service.env
 
@@ -86,7 +86,7 @@ PGPASSWORD=FdfsPass123 psql -h fdfs-postgre.srinun.in -U fdfs -d fdfs -f /opt/fd
 
 PGPASSWORD=FdfsPass123 psql -h fdfs-postgre.srinun.in -U fdfs -d fdfs -f /opt/fdfs/movie-service/db/seed.sql
 
-cp movies_svc_systemd.file /etc/systemd/system/fdfs-movie-service.service
+cp "$(pwd)/movies_svc_systemd.file" /etc/systemd/system/fdfs-movie-service.service
 
 systemctl daemon-reload
 
