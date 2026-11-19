@@ -1,0 +1,17 @@
+[Unit]
+Description=FDFS payment-service
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=fdfs
+Group=fdfs
+WorkingDirectory=/opt/fdfs/payment-service
+EnvironmentFile=/etc/fdfs/payment-service.env
+ExecStart=/usr/bin/java -Xms32m -Xmx64m -jar /opt/fdfs/payment-service/app.jar
+Restart=on-failure
+RestartSec=5
+SyslogIdentifier=payment-service
+
+[Install]
+WantedBy=multi-user.target
