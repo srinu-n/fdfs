@@ -178,13 +178,13 @@ if [ "$1" == "delete" ]; then
             echo "Matched fdfs-frontend"
             aws route53 change-resource-record-sets \
             --hosted-zone-id "${HOSTED_ZONE_ID}" \
-            --change-batch "{\"Changes\":[{\"Action\":\"UPSERT\",\"ResourceRecordSet\":{\"Name\":\"${PREFIX}-${machine}.${ROOT_DOMAIN}\",\"Type\":\"A\",\"TTL\":300,\"ResourceRecords\":[{\"Value\":\"${public_ip}\"}]}}]}"
+            --change-batch "{\"Changes\":[{\"Action\":\"DELETE\",\"ResourceRecordSet\":{\"Name\":\"${PREFIX}-${machine}.${ROOT_DOMAIN}\",\"Type\":\"A\",\"TTL\":300,\"ResourceRecords\":[{\"Value\":\"${public_ip}\"}]}}]}"
         else
 
             echo " we need to update the pvt ip only"
             aws route53 change-resource-record-sets \
             --hosted-zone-id "${HOSTED_ZONE_ID}" \
-            --change-batch "{\"Changes\":[{\"Action\":\"UPSERT\",\"ResourceRecordSet\":{\"Name\":\"${PREFIX}-${machine}.${ROOT_DOMAIN}\",\"Type\":\"A\",\"TTL\":300,\"ResourceRecords\":[{\"Value\":\"${pvt_ip}\"}]}}]}"
+            --change-batch "{\"Changes\":[{\"Action\":\"DELETE\",\"ResourceRecordSet\":{\"Name\":\"${PREFIX}-${machine}.${ROOT_DOMAIN}\",\"Type\":\"A\",\"TTL\":300,\"ResourceRecords\":[{\"Value\":\"${pvt_ip}\"}]}}]}"
         fi
 
         echo -e "${G}[SUCCESS $(date +"%Y-%m-%d %H:%M:%S")] EC2 deletion process completed for ${machine}.${N}"
