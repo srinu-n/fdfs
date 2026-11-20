@@ -19,6 +19,7 @@ if [ "$(id -u)" -ne 0 ]; then
     exit 1
 fi
 
+
 validate () {
     if [ $1 -eq 0 ]; then
 
@@ -30,28 +31,30 @@ validate () {
     fi
 }
 
-apt update -y
+echo "running apt update...."
+apt update -y  &>> /var/log/fdfs-postgres.log  # redirects both the stderr and stdout to the file
 
 validate $? "apt update"
 # check the previous command is got suceded or not if not stop here itself
 
 # write a simple function to follow dry principles
-
-apt install -y postgresql-common ca-certificates
+echo "installing the postgres certs ..."
+apt install -y postgresql-common ca-certificates   &>> /var/log/fdfs-postgres.log 
 
 validate $? "install -y postgresql-common ca-certificates"
 
 
-
-/usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
+echo "installing the postgresql-common/pgdg/apt.postgresql.org.sh..."
+/usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y  &>> /var/log/fdfs-postgres.log 
 
 validate $? "/usr/share/postgresql-common/pgdg/apt.postgresql.org.sh"
 
 
 # check the package is installed or not
+ 
+echo "installing the postgresql..."
 
-apt install -y postgresql-18
-
+apt install -y postgresql-18  &>> /var/log/fdfs-postgres.log
 validate $? "apt install -y postgresql-18"
 
 sed -i "s/^#listen_addresses = 'localhost'/listen_addresses = '*'/" /etc/postgresql/18/main/postgresql.conf

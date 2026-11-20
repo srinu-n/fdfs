@@ -30,7 +30,7 @@ validate () {
     fi
 }
 
-apt update -y
+apt update -y  
 
 validate $? "apt update"
 # check the previous command is got suceded or not if not stop here itself
