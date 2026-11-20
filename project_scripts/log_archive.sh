@@ -5,6 +5,7 @@ if [ $(id -u) -eq 0 ];then
     echo " user have root previlages"
 else
     echo "please run with the root permissions"
+    exit 1
 fi
 
 files_to_delete=$(find /var/log/ -type f -name "fdfs-*.log*"  -mtime +6)
