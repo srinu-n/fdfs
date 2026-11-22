@@ -51,11 +51,11 @@
     - name: create the databse user for postgres
       community.postgresql.postgresql_user:
         # login_db: fdfs  # this is not required i feel
-        login_password: FdfsPass123
+        password: FdfsPass123
         name: fdfs 
         state: present
     
-    - name: create the database schema insaide the postgres
+    - name: create the database schema inside the postgres
       community.postgresql.postgresql_db:
         name: fdfs
         owner: fdfs
