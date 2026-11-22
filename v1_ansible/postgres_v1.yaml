@@ -1,9 +1,9 @@
-- name: this is the playbook to install the postgres
+- name: Install and configure PostgreSQL 18 for FDFS
   hosts: all
   become: yes
   connection: local
   tasks:
-    - name: installing the required packages
+    - name: Install prerequisites (PGDG helper, CA certificates, psycopg2, acl)
       apt:
         name: "{{ item }}"
         state: present
@@ -14,24 +14,24 @@
         - python3-psycopg2
         - acl
     
-    - name: running the command module
+    - name: Add the official PostgreSQL (PGDG) apt repository
       command:
         cmd: /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y 
         creates: /etc/apt/sources.list.d/pgdg.sources
       
-    - name: installing the postgres
+    - name: Install PostgreSQL 18
       apt:
         name: postgresql-18
         state: present
       
-    - name: update the ansible to listen from all the servers
+    - name: Make PostgreSQL listen on all network interfaces
       replace:
         path: /etc/postgresql/18/main/postgresql.conf
         regexp: "^#listen_addresses = 'localhost'"
         replace: "listen_addresses = '*'"
     
 
-    - name: update the pghba conf of the postgres
+    - name: Allow the fdfs user to connect to the fdfs database (pg_hba.conf)
       community.postgresql.postgresql_pg_hba:
         dest: /etc/postgresql/18/main/pg_hba.conf
         contype: host
@@ -43,13 +43,13 @@
         create: true
 
     
-    - name: restart and enable the postgres
+    - name: Restart PostgreSQL and enable it at boot
       ansible.builtin.systemd_service:
         name: postgresql
         state: restarted
         enabled: true
 
-    - name: create the databse user for postgres
+    - name: Create the fdfs database user
       community.postgresql.postgresql_user:
         # login_db: fdfs  # this is not required i feel
         password: FdfsPass123
@@ -57,13 +57,10 @@
         state: present
       become_user: postgres
       become: true
-    - name: create the database schema inside the postgres
+    - name: Create the fdfs database owned by the fdfs user
       community.postgresql.postgresql_db:
         name: fdfs
         owner: fdfs
         state: present
       become_user: postgres
       become: true
-      
-
-
