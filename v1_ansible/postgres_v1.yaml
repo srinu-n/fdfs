@@ -1,7 +1,7 @@
 - name: this is the playbook to install the postgres
   hosts: all
   become: yes
-  ansible_connection: local
+  connection: local
   tasks:
     - name: installing the required packages
       apt:
