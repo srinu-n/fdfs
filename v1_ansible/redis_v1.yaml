@@ -25,7 +25,7 @@
         line: 'protected-mode no'
 
         
-    - name: Restart PostgreSQL and enable it at boot
+    - name: Restart redis and enable it at boot
       ansible.builtin.systemd_service:
         name: redis-server
         state: restarted
