@@ -1,0 +1,61 @@
+- name: this is the playbook to install the postgres
+  hosts: all
+  become: yes
+  tasks:
+    - name: installing the required packages
+      apt:
+        name: "{{ item }}"
+        state: present
+        update_cache : true 
+      loop:
+        - postgresql-common 
+        - ca-certificates
+    
+    - name: running the command module
+      command:
+        cmd: /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y 
+        creates: /etc/apt/sources.list.d/pgdg.sources
+      
+    - name: installing the postgres
+      apt:
+        name: postgresql-18
+        state: present
+      
+    - name: update the ansible to listen from all the servers
+      replace:
+        path: /etc/postgresql/18/main/postgresql.conf
+        regexp: "^#listen_addresses = 'localhost'"
+        replace: "listen_addresses = '*'"
+    
+
+    - name: update the pghba conf of the postgres
+      community.postgresql.postgresql_pg_hba:
+        dest: etc/postgresql/18/main/pg_hba.conf
+        users: fdfs
+        databases: fdfs
+        method: scram-sha-256
+        source: 0.0.0.0/0
+        comment: "Allow the fdfs user to the fdfs database from any address."
+
+    
+    - name: restart and enable the postgres
+      ansible.builtin.systemd_service:
+        name: postgresql
+        state: restarted
+        enabled: true
+
+    - name: create the databse user for postgres
+      community.postgresql.postgresql_user module:
+        # login_db: fdfs  # this is not required i feel
+        login_password: FdfsPass123
+        name: fdfs 
+        state: present
+    
+    - name: create the database schema insaide the postgres
+      community.postgresql.postgresql_db module:
+        name: fdfs
+        owner: fdfs
+        state: present
+      
+
+
