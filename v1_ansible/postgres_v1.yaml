@@ -12,6 +12,7 @@
         - postgresql-common 
         - ca-certificates
         - python3-psycopg2
+        - acl
     
     - name: running the command module
       command:
