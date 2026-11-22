@@ -11,6 +11,7 @@
       loop:
         - postgresql-common 
         - ca-certificates
+        - python3-psycopg2
     
     - name: running the command module
       command:
