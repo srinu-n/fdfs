@@ -1,4 +1,4 @@
-- name: Install and configure PostgreSQL 18 for FDFS
+- name: Install and configure  redis for FDFS
   hosts: all
   become: yes
   connection: local
