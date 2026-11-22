@@ -54,8 +54,8 @@
         password: FdfsPass123
         name: fdfs 
         state: present
-        become_user: postgres
-        become: true
+      become_user: postgres
+      become: true
     - name: create the database schema inside the postgres
       community.postgresql.postgresql_db:
         name: fdfs
