@@ -10,27 +10,27 @@
         update_cache: true
 
 
-    - name: just enable the raabitmq to restart on boot
+    - name: Start RabbitMQ and enable it at boot
       ansible.builtin.systemd_service:
         name: rabbitmq-server
         enabled: true
         state: started
       
     
-    - name: creating and updating the permissions of the rabbitmq user
+    - name: Create the fdfs RabbitMQ user with full permissions on /
       community.rabbitmq.rabbitmq_user:
         user: fdfs
         state: present
         permissions:
           - vhost: /
-            configure_priv: .*
-            read_priv: .*
-            write_priv: .*
+            configure_priv: ".*"
+            read_priv: ".*"
+            write_priv: ".*"
         password: FdfsPass123
         tags: administrator
 
 
-    - name: enable the rabbitmq admin ui
+    - name: Enable the RabbitMQ management UI (port 15672)
       community.rabbitmq.rabbitmq_plugin:
         names: rabbitmq_management
         state: enabled
