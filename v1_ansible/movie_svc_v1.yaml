@@ -1,9 +1,9 @@
-- name: writing the playbook for the movie svc
+- name: Install and run the FDFS movie service
   hosts: all
   connection: local
   become: true
   tasks:
-    - name: installing the dependencies reuqired for movie svc[python3 python3-venv python3-pip unzip curl postgresql-client]
+    - name: Install system packages for the movie service (Python, venv, pip, unzip, curl, PostgreSQL client, psycopg2)
       ansible.builtin.apt:
         name: "{{ item }}"
         state: present
@@ -16,7 +16,7 @@
       - postgresql-client
       - python3-psycopg2
 
-    - name: creating the system user to run the fdfs app
+    - name: Create the fdfs system user to run the service
       ansible.builtin.user:
         create_home: false
         name: fdfs
@@ -24,30 +24,32 @@
         state: present
         system: true
 
-    - name: create the service folder
+    - name: Create the movie service folder
       ansible.builtin.file:
         path: /opt/fdfs/movie-service
         state: directory
 
     
-    - name: download the source code
+    - name: Download the movie service release (v1)
       ansible.builtin.get_url:
         url: https://fdfs-artifacts-30b67175.s3.amazonaws.com/movie-service-v1.zip
         dest: /tmp/movie-service.zip
 
-    - name: un-archive the downloaded code
+    - name: Extract the movie service code (owned by fdfs)
       ansible.builtin.unarchive:
         remote_src: yes
         dest: /opt/fdfs/movie-service 
         src: /tmp/movie-service.zip
+        owner: fdfs
+        group: fdfs
     
-    - name: installing the requirements.txt for the movie svc
+    - name: Create the virtualenv and install the Python requirements
       ansible.builtin.pip:
         virtualenv: /opt/fdfs/movie-service/venv
         virtualenv_command: python3 -m venv
         requirements: /opt/fdfs/movie-service/requirements.txt
     
-    - name: change the owner for the movies svc
+    - name: Make fdfs the owner of the movie service folder
       ansible.builtin.file:
         owner: fdfs
         path: /opt/fdfs/movie-service
@@ -55,12 +57,12 @@
         state: directory
     
     
-    - name: create the directory first for copying the env file
+    - name: Create the /etc/fdfs config folder
       ansible.builtin.file:
         path: /etc/fdfs
         state: directory
 
-    - name: copy the env file
+    - name: Copy the movie service env file
       ansible.builtin.copy:
         src: movie_svc_v1_env.file
         dest: /etc/fdfs/movie-service.env
@@ -76,7 +78,7 @@
         query: "SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'movies'"
       register: movies_table
 
-    - name: Show what the check returned
+    - name: Show the movies table check result
       ansible.builtin.debug:
         var: movies_table
 
@@ -100,7 +102,7 @@
       register: movie_rows
 
     
-    - name: Show what the check returned
+    - name: Show the movie count
       ansible.builtin.debug:
         var: movie_rows
 
@@ -117,25 +119,14 @@
 
 
 
-    - name: copy the service file
+    - name: Install the systemd unit file for the movie service
       ansible.builtin.copy:
         src: movie_svc_v1_service.file
         dest: /etc/systemd/system/fdfs-movie-service.service
     
-    - name: daemon reload and enable the service
+    - name: Reload systemd, restart the movie service and enable it at boot
       ansible.builtin.systemd_service:
         daemon_reload: true
         enabled: true
         name: fdfs-movie-service
         state: restarted
-
-
-
-
-
-        
-
-
-      
-
-      
