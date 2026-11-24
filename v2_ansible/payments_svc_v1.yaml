@@ -1,0 +1,87 @@
+- name: Install and run the FDFS payment service
+  hosts: all
+  connection: local
+  become: true
+  tasks:
+    - name: Install system packages for the payment service (JDK, Maven, unzip, curl)
+      ansible.builtin.apt:
+        name: "{{ item }}"
+        state: present
+      loop: 
+        - default-jdk-headless 
+        - maven 
+        - unzip 
+        - curl
+
+
+    
+    - name: Create the fdfs system user to run the service
+      ansible.builtin.user:
+        create_home: false
+        name: fdfs
+        shell: /usr/sbin/nologin
+        state: present
+        system: true
+
+
+    - name: Create the build folder for the source code
+      ansible.builtin.file:
+        path: /tmp/payment-service
+        state: directory
+    
+
+    - name: Download the payment service source (v1)
+      ansible.builtin.get_url:
+        url: https://fdfs-artifacts-30b67175.s3.amazonaws.com/payment-service-v1.zip
+        dest: /tmp/payment-service.zip
+
+    - name: Extract the source code into the build folder
+      ansible.builtin.unarchive:
+        src: /tmp/payment-service.zip
+        dest: /tmp/payment-service
+    
+
+    - name: Build the JAR with Maven (tests skipped)
+      ansible.builtin.command:
+        chdir: /tmp/payment-service
+        cmd: mvn clean package -DskipTests
+
+    - name: Create the payment service folder (owned by fdfs)
+      ansible.builtin.file:
+        state: directory
+        path:  /opt/fdfs/payment-service
+        recurse: yes
+        owner: fdfs
+        group: fdfs
+    
+    - name: Copy the built JAR to the service folder as app.jar
+      ansible.builtin.copy:
+        src: /tmp/payment-service/target/payment-service.jar
+        dest: /opt/fdfs/payment-service/app.jar
+    
+
+    
+    - name: Create the /etc/fdfs config folder
+      ansible.builtin.file:
+        state: directory
+        path:  /etc/fdfs
+
+
+    - name: Copy the payment service env file
+      ansible.builtin.copy:
+        src: payments_svc_v1_env.file
+        dest: /etc/fdfs/payment-service.env
+
+
+    - name: Install the systemd unit file for the payment service
+      ansible.builtin.copy:
+        src: payments_svc_v1_service.file
+        dest: /etc/systemd/system/fdfs-payment-service.service
+
+    
+    - name: Reload systemd, restart the payment service and enable it at boot
+      ansible.builtin.systemd_service:
+        name: fdfs-payment-service
+        daemon_reload: true
+        enabled: true
+        state: restarted

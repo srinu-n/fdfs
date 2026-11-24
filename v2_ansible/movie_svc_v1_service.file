@@ -1,0 +1,17 @@
+[Unit]
+Description=FDFS movie-service
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=fdfs
+Group=fdfs
+WorkingDirectory=/opt/fdfs/movie-service
+EnvironmentFile=/etc/fdfs/movie-service.env
+ExecStart=/opt/fdfs/movie-service/venv/bin/gunicorn --bind 0.0.0.0:8001 --workers 1 --threads 4 --access-logfile - app:app
+Restart=on-failure
+RestartSec=5
+SyslogIdentifier=movie-service
+
+[Install]
+WantedBy=multi-user.target

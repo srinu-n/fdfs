@@ -1,0 +1,17 @@
+[Unit]
+Description=FDFS booking-service
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=fdfs
+Group=fdfs
+WorkingDirectory=/opt/fdfs/booking-service
+EnvironmentFile=/etc/fdfs/booking-service.env
+ExecStart=/opt/fdfs/booking-service/venv/bin/gunicorn --bind 0.0.0.0:8002 --workers 1 --threads 4 --access-logfile - app:app
+Restart=on-failure
+RestartSec=5
+SyslogIdentifier=booking-service
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,36 @@
+- name: Install and configure RabbitMQ for FDFS
+  hosts: all
+  become: true
+  connection: local
+  tasks:
+    - name: Update the apt cache and install rabbitmq-server
+      ansible.builtin.apt:
+        name: rabbitmq-server
+        state: present
+        update_cache: true
+
+
+    - name: Start RabbitMQ and enable it at boot
+      ansible.builtin.systemd_service:
+        name: rabbitmq-server
+        enabled: true
+        state: started
+      
+    
+    - name: Create the fdfs RabbitMQ user with full permissions on /
+      community.rabbitmq.rabbitmq_user:
+        user: fdfs
+        state: present
+        permissions:
+          - vhost: /
+            configure_priv: ".*"
+            read_priv: ".*"
+            write_priv: ".*"
+        password: FdfsPass123
+        tags: administrator
+
+
+    - name: Enable the RabbitMQ management UI (port 15672)
+      community.rabbitmq.rabbitmq_plugin:
+        names: rabbitmq_management
+        state: enabled

@@ -1,0 +1,34 @@
+- name: Install and configure  redis for FDFS
+  hosts: all
+  become: yes
+  connection: local
+  tasks:
+    - name: Install redis-server
+      apt:
+        name: "{{ item }}"
+        state: present
+        update_cache : true 
+      loop:
+        - redis-server
+
+    
+    - name: Allow Redis to listen on all network interfaces
+      ansible.builtin.lineinfile:
+        path: /etc/redis/redis.conf
+        regexp: '^bind 127\.0\.0\.1 -::1'
+        line: 'bind 0.0.0.0'
+
+    - name: Disable Redis protected mode
+      ansible.builtin.lineinfile:
+        path: /etc/redis/redis.conf
+        regexp: '^protected-mode yes'
+        line: 'protected-mode no'
+
+        
+    - name: Restart redis and enable it at boot
+      ansible.builtin.systemd_service:
+        name: redis-server
+        state: restarted
+        enabled: true
+
+
