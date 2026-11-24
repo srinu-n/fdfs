@@ -1,0 +1,17 @@
+[Unit]
+Description=FDFS notification-service
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=fdfs
+Group=fdfs
+WorkingDirectory=/opt/fdfs/notification-service
+EnvironmentFile=/etc/fdfs/notification-service.env
+ExecStart=/opt/fdfs/notification-service/venv/bin/gunicorn --bind 0.0.0.0:8004 --workers 1 --threads 4 --access-logfile - app:app
+Restart=on-failure
+RestartSec=5
+SyslogIdentifier=notification-service
+
+[Install]
+WantedBy=multi-user.target

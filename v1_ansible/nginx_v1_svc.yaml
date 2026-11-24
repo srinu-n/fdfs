@@ -1,0 +1,53 @@
+- name: Install and configure the FDFS frontend (Nginx)
+  become: true
+  hosts: all
+  connection: local
+  tasks:
+    - name: Install system packages for the frontend (Nginx, unzip, curl)
+      ansible.builtin.apt:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - nginx 
+        - unzip 
+        - curl
+
+    
+    - name: Remove the default Nginx site (it also listens on port 80)
+      ansible.builtin.file:
+        path: /etc/nginx/sites-enabled/default
+        state: absent
+    
+
+    - name: Create the web root folder for the frontend
+      ansible.builtin.file:
+        path: /var/www/fdfs
+        state: directory
+
+    - name: Download the frontend release (v1)
+      ansible.builtin.get_url:
+        url: https://fdfs-artifacts-30b67175.s3.amazonaws.com/frontend-v1.zip
+        dest: /tmp/frontend.zip
+
+    - name: Extract the frontend files into the web root
+      ansible.builtin.unarchive:
+        remote_src: yes
+        dest: /var/www/fdfs
+        src: /tmp/frontend.zip
+
+    
+    - name: Copy the FDFS Nginx config to /etc/nginx/conf.d/fdfs.conf
+      ansible.builtin.copy:
+        src: nginx.conf
+        dest: /etc/nginx/conf.d/fdfs.conf
+    
+    - name: Test the Nginx configuration before restarting
+      ansible.builtin.command:
+        cmd: nginx -t
+    
+    - name: Restart Nginx and enable it at boot
+      ansible.builtin.systemd_service:
+        name: nginx
+        state: restarted
+        daemon_reload: true
+        enabled: true
