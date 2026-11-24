@@ -69,13 +69,13 @@
 
     - name: Copy the payment service env file
       ansible.builtin.copy:
-        src: payments_svc_v1_env.file
+        src: payments_svc_v2_env.file
         dest: /etc/fdfs/payment-service.env
 
 
     - name: Install the systemd unit file for the payment service
       ansible.builtin.copy:
-        src: payments_svc_v1_service.file
+        src: payments_svc_v2_service.file
         dest: /etc/systemd/system/fdfs-payment-service.service
 
     
