@@ -1,4 +1,4 @@
-- name: Install and run the FDFS notifcation service
+- name: Install and run the FDFS notification service
   hosts: all
   connection: local
   become: true
@@ -8,11 +8,11 @@
         name: "{{ item }}"
         state: present
       loop:
-      - python3 
-      - python3-venv 
-      - python3-pip 
-      - unzip 
-      - curl 
+      - python3
+      - python3-venv
+      - python3-pip
+      - unzip
+      - curl
       - postgresql-client
       - python3-psycopg2
 
@@ -29,7 +29,6 @@
         path: /opt/fdfs/notification-service
         state: directory
 
-    
     - name: Download the notification service release (v1)
       ansible.builtin.get_url:
         url: https://fdfs-artifacts-30b67175.s3.amazonaws.com/notification-service-v1.zip
@@ -38,25 +37,26 @@
     - name: Extract the notification service code (owned by fdfs)
       ansible.builtin.unarchive:
         remote_src: yes
-        dest: /opt/fdfs/notification-service 
+        dest: /opt/fdfs/notification-service
         src: /tmp/notification-service.zip
         owner: fdfs
         group: fdfs
-    
+      notify: restart notification svc
+
     - name: Create the virtualenv and install the Python requirements
       ansible.builtin.pip:
         virtualenv: /opt/fdfs/notification-service/venv
         virtualenv_command: python3 -m venv
         requirements: /opt/fdfs/notification-service/requirements.txt
-    
+      notify: restart notification svc
+
     - name: Make fdfs the owner of the notification service folder
       ansible.builtin.file:
         owner: fdfs
         path: /opt/fdfs/notification-service
         recurse: yes
         state: directory
-    
-    
+
     - name: Create the /etc/fdfs config folder
       ansible.builtin.file:
         path: /etc/fdfs
@@ -64,12 +64,12 @@
 
     - name: Copy the notification service env file
       ansible.builtin.copy:
-        src: notification_v1_env.file
+        src: notification_v2_env.file
         dest: /etc/fdfs/notification-service.env
         mode: '0600'
+      notify: restart notification svc
 
-
-    - name: Check whether the notification table already exists
+    - name: Check whether the notifications table already exists
       community.postgresql.postgresql_query:
         login_db: fdfs
         login_host: localhost
@@ -78,7 +78,7 @@
         query: "SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'notifications'"
       register: notifications_table
 
-    - name: Load the notifications schema (only if the notification table is missing)
+    - name: Load the notifications schema (only if the notifications table is missing)
       community.postgresql.postgresql_db:
         login_host: localhost
         login_password: FdfsPass123
@@ -87,16 +87,25 @@
         state: restore
         target: /opt/fdfs/notification-service/db/schema.sql
       when: notifications_table.rowcount == 0
-
+      notify: restart notification svc
 
     - name: Install the systemd unit file for the notification service
       ansible.builtin.copy:
-        src: notification_svc_v1_service.file
+        src: notification_svc_v2_service.file
         dest: /etc/systemd/system/fdfs-notification-service.service
-    
-    - name: Reload systemd, restart the notifcation service and enable it at boot
+      notify: restart notification svc
+
+    - name: Make sure the notification service is running and enabled at boot
+      ansible.builtin.systemd_service:
+        name: fdfs-notification-service
+        state: started
+        enabled: true
+
+  handlers:
+    - name: Reload systemd, restart the notification service and enable it at boot
       ansible.builtin.systemd_service:
         daemon_reload: true
         enabled: true
         name: fdfs-notification-service
         state: restarted
+      listen: restart notification svc
