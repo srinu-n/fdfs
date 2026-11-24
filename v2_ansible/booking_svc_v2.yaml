@@ -42,12 +42,14 @@
         src: /tmp/booking-service.zip
         owner: fdfs
         group: fdfs
+      notify: start the booking svc
     
     - name: Create the virtualenv and install the Python requirements
       ansible.builtin.pip:
         virtualenv: /opt/fdfs/booking-service/venv
         virtualenv_command: python3 -m venv
         requirements: /opt/fdfs/booking-service/requirements.txt
+      notify: start the booking svc
     
     - name: Make fdfs the owner of the booking service folder
       ansible.builtin.file:
@@ -64,9 +66,10 @@
 
     - name: Copy the booking service env file
       ansible.builtin.copy:
-        src: booking_svc_v1_env.file
+        src: booking_svc_v2_env.file
         dest: /etc/fdfs/booking-service.env
         mode: '0600'
+      notify: start the booking svc
 
 
     - name: Check whether the bookings table already exists
@@ -77,6 +80,7 @@
         login_user: fdfs
         query: "SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'bookings'"
       register: bookings_table
+      notify: start the booking svc
 
     - name: Load the booking schema (only if the bookings table is missing)
       community.postgresql.postgresql_db:
@@ -87,16 +91,27 @@
         state: restore
         target: /opt/fdfs/booking-service/db/schema.sql
       when: bookings_table.rowcount == 0
-
+      notify: start the booking svc
 
     - name: Install the systemd unit file for the booking service
       ansible.builtin.copy:
-        src: booking_svc_v1_service.file
+        src: booking_svc_v2_service.file
         dest: /etc/systemd/system/fdfs-booking-service.service
     
+      notify: start the booking svc
+    
+    - name: Make sure the booking service is running and enabled at boot
+      ansible.builtin.systemd_service:
+        name: fdfs-booking-service
+        state: started
+        enabled: true
+    
+    
+  handlers:
     - name: Reload systemd, restart the booking service and enable it at boot
       ansible.builtin.systemd_service:
         daemon_reload: true
         enabled: true
         name: fdfs-booking-service
         state: restarted
+      listen: start the booking svc
