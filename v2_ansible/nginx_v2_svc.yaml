@@ -8,16 +8,15 @@
         name: "{{ item }}"
         state: present
       loop:
-        - nginx 
-        - unzip 
+        - nginx
+        - unzip
         - curl
 
-    
     - name: Remove the default Nginx site (it also listens on port 80)
       ansible.builtin.file:
         path: /etc/nginx/sites-enabled/default
         state: absent
-    
+      notify: reload nginx
 
     - name: Create the web root folder for the frontend
       ansible.builtin.file:
@@ -35,19 +34,26 @@
         dest: /var/www/fdfs
         src: /tmp/frontend.zip
 
-    
     - name: Copy the FDFS Nginx config to /etc/nginx/conf.d/fdfs.conf
       ansible.builtin.copy:
         src: nginx.conf
         dest: /etc/nginx/conf.d/fdfs.conf
-    
-    - name: Test the Nginx configuration before restarting
+      notify: reload nginx
+
+    - name: Test the Nginx configuration
       ansible.builtin.command:
         cmd: nginx -t
-    
-    - name: Restart Nginx and enable it at boot
+      changed_when: false
+
+    - name: Make sure Nginx is running and enabled at boot
       ansible.builtin.systemd_service:
         name: nginx
-        state: restarted
-        daemon_reload: true
+        state: started
         enabled: true
+
+  handlers:
+    - name: Reload Nginx to apply the new configuration
+      ansible.builtin.systemd_service:
+        name: nginx
+        state: reloaded
+      listen: reload nginx
