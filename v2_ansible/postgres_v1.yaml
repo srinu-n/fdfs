@@ -24,7 +24,7 @@
         name: postgresql-18
         state: present
       notify: Restart PostgreSQL and enable it at boot
-      
+
     - name: Make PostgreSQL listen on all network interfaces
       replace:
         path: /etc/postgresql/18/main/postgresql.conf
@@ -53,6 +53,7 @@
         state: present
       become_user: postgres
       become: true
+      
     - name: Create the fdfs database owned by the fdfs user
       community.postgresql.postgresql_db:
         name: fdfs
