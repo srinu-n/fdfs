@@ -42,12 +42,14 @@
         src: /tmp/movie-service.zip
         owner: fdfs
         group: fdfs
+      notify: restart movie svc
     
     - name: Create the virtualenv and install the Python requirements
       ansible.builtin.pip:
         virtualenv: /opt/fdfs/movie-service/venv
         virtualenv_command: python3 -m venv
         requirements: /opt/fdfs/movie-service/requirements.txt
+      notify: restart movie svc
     
     - name: Make fdfs the owner of the movie service folder
       ansible.builtin.file:
@@ -102,7 +104,6 @@
         login_user: fdfs
         query: "SELECT count(*) AS total FROM movies"
       register: movie_rows
-      notify: restart movie svc
 
     
     - name: Show the movie count
@@ -127,6 +128,12 @@
         src: movie_svc_v1_service.file
         dest: /etc/systemd/system/fdfs-movie-service.service
       notify: restart movie svc
+
+    - name: Make sure the movie service is running and enabled at boot
+      ansible.builtin.systemd_service:
+        name: fdfs-movie-service
+        state: started
+        enabled: true
 
   handlers:
     - name: Reload systemd, restart the movie service and enable it at boot
