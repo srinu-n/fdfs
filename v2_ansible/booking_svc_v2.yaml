@@ -67,7 +67,7 @@
         state: directory
 
     - name: Copy the booking service env file
-      ansible.builtin.file:
+      ansible.builtin.template:
         src: booking_svc_v2_env.j2
         dest: /etc/fdfs/booking-service.env
         mode: '0600'
