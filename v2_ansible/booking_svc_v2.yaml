@@ -2,6 +2,8 @@
   hosts: all
   connection: local
   become: true
+  vars_files:
+    - secrets.yaml
   tasks:
     - name: Install system packages for the booking service (Python, venv, pip, unzip, curl, PostgreSQL client, psycopg2)
       ansible.builtin.apt:
@@ -65,8 +67,8 @@
         state: directory
 
     - name: Copy the booking service env file
-      ansible.builtin.copy:
-        src: booking_svc_v2_env.file
+      ansible.builtin.file:
+        src: booking_svc_v2_env.j2
         dest: /etc/fdfs/booking-service.env
         mode: '0600'
       notify: start the booking svc
