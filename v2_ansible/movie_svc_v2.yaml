@@ -2,6 +2,8 @@
   hosts: all
   connection: local
   become: true
+  vars_files:
+    - secrets.yaml
   tasks:
     - name: Install system packages for the movie service (Python, venv, pip, unzip, curl, PostgreSQL client, psycopg2)
       ansible.builtin.apt:
@@ -124,8 +126,8 @@
 
 
     - name: Install the systemd unit file for the movie service
-      ansible.builtin.copy:
-        src: movie_svc_v2_service.file
+      ansible.builtin.template:
+        src: movie_svc_v2_service.j2
         dest: /etc/systemd/system/fdfs-movie-service.service
       notify: restart movie svc
 
