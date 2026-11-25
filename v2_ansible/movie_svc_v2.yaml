@@ -67,8 +67,8 @@
         state: directory
 
     - name: Copy the movie service env file
-      ansible.builtin.copy:
-        src: movie_svc_v2_env.file
+      ansible.builtin.template:
+        src: movie_svc_v2_env.j2
         dest: /etc/fdfs/movie-service.env
         mode: '0600'
       notify: restart movie svc
@@ -126,8 +126,8 @@
 
 
     - name: Install the systemd unit file for the movie service
-      ansible.builtin.template:
-        src: movie_svc_v2_service.j2
+      ansible.builtin.copy:
+        src: movie_svc_v2_service.file
         dest: /etc/systemd/system/fdfs-movie-service.service
       notify: restart movie svc
 
