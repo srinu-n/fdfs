@@ -2,23 +2,25 @@
   hosts: all
   become: yes
   connection: local
+  vars_files:
+    - secrets.yaml
   tasks:
     - name: Install prerequisites (PGDG helper, CA certificates, psycopg2, acl)
       apt:
         name: "{{ item }}"
         state: present
-        update_cache : true 
+        update_cache: true
       loop:
-        - postgresql-common 
+        - postgresql-common
         - ca-certificates
         - python3-psycopg2
         - acl
-    
+
     - name: Add the official PostgreSQL (PGDG) apt repository
       command:
-        cmd: /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y 
+        cmd: /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
         creates: /etc/apt/sources.list.d/pgdg.sources
-      
+
     - name: Install PostgreSQL 18
       apt:
         name: postgresql-18
@@ -31,14 +33,13 @@
         regexp: "^#listen_addresses = 'localhost'"
         replace: "listen_addresses = '*'"
       notify: Restart PostgreSQL and enable it at boot
-    
 
     - name: Allow the fdfs user to connect to the fdfs database (pg_hba.conf)
       community.postgresql.postgresql_pg_hba:
         dest: /etc/postgresql/18/main/pg_hba.conf
         contype: host
-        users: fdfs
-        databases: fdfs
+        users: "{{ DB_USER }}"
+        databases: "{{ DB_NAME }}"
         method: scram-sha-256
         source: 0.0.0.0/0
         comment: "Allow the fdfs user to the fdfs database from any address."
@@ -47,17 +48,16 @@
 
     - name: Create the fdfs database user
       community.postgresql.postgresql_user:
-        # login_db: fdfs  # this is not required i feel
-        password: FdfsPass123
-        name: fdfs 
+        name: "{{ DB_USER }}"
+        password: "{{ DB_PASSWORD }}"
         state: present
       become_user: postgres
       become: true
-      
+
     - name: Create the fdfs database owned by the fdfs user
       community.postgresql.postgresql_db:
-        name: fdfs
-        owner: fdfs
+        name: "{{ DB_NAME }}"
+        owner: "{{ DB_USER }}"
         state: present
       become_user: postgres
       become: true
@@ -68,5 +68,3 @@
         name: postgresql
         state: restarted
         enabled: true
-
-  

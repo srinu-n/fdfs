@@ -10,11 +10,11 @@
         name: "{{ item }}"
         state: present
       loop:
-      - python3 
-      - python3-venv 
-      - python3-pip 
-      - unzip 
-      - curl 
+      - python3
+      - python3-venv
+      - python3-pip
+      - unzip
+      - curl
       - postgresql-client
       - python3-psycopg2
 
@@ -31,7 +31,6 @@
         path: /opt/fdfs/movie-service
         state: directory
 
-    
     - name: Download the movie service release (v1)
       ansible.builtin.get_url:
         url: https://fdfs-artifacts-30b67175.s3.amazonaws.com/movie-service-v1.zip
@@ -40,27 +39,26 @@
     - name: Extract the movie service code (owned by fdfs)
       ansible.builtin.unarchive:
         remote_src: yes
-        dest: /opt/fdfs/movie-service 
+        dest: /opt/fdfs/movie-service
         src: /tmp/movie-service.zip
         owner: fdfs
         group: fdfs
       notify: restart movie svc
-    
+
     - name: Create the virtualenv and install the Python requirements
       ansible.builtin.pip:
         virtualenv: /opt/fdfs/movie-service/venv
         virtualenv_command: python3 -m venv
         requirements: /opt/fdfs/movie-service/requirements.txt
       notify: restart movie svc
-    
+
     - name: Make fdfs the owner of the movie service folder
       ansible.builtin.file:
         owner: fdfs
         path: /opt/fdfs/movie-service
         recurse: yes
         state: directory
-    
-    
+
     - name: Create the /etc/fdfs config folder
       ansible.builtin.file:
         path: /etc/fdfs
@@ -73,13 +71,12 @@
         mode: '0600'
       notify: restart movie svc
 
-
     - name: Check whether the movies table already exists
       community.postgresql.postgresql_query:
-        login_db: fdfs
-        login_host: localhost
-        login_password: FdfsPass123
-        login_user: fdfs
+        login_db: "{{ DB_NAME }}"
+        login_host: "{{ DB_HOST }}"
+        login_password: "{{ DB_PASSWORD }}"
+        login_user: "{{ DB_USER }}"
         query: "SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'movies'"
       register: movies_table
 
@@ -89,10 +86,10 @@
 
     - name: Load the database schema (only if the movies table is missing)
       community.postgresql.postgresql_db:
-        login_host: localhost
-        login_password: FdfsPass123
-        login_user: fdfs
-        name: fdfs
+        login_host: "{{ DB_HOST }}"
+        login_password: "{{ DB_PASSWORD }}"
+        login_user: "{{ DB_USER }}"
+        name: "{{ DB_NAME }}"
         state: restore
         target: /opt/fdfs/movie-service/db/schema.sql
       when: movies_table.rowcount == 0
@@ -100,30 +97,27 @@
 
     - name: Count the movies already in the table
       community.postgresql.postgresql_query:
-        login_db: fdfs
-        login_host: localhost
-        login_password: FdfsPass123
-        login_user: fdfs
+        login_db: "{{ DB_NAME }}"
+        login_host: "{{ DB_HOST }}"
+        login_password: "{{ DB_PASSWORD }}"
+        login_user: "{{ DB_USER }}"
         query: "SELECT count(*) AS total FROM movies"
       register: movie_rows
 
-    
     - name: Show the movie count
       ansible.builtin.debug:
         var: movie_rows
 
-
     - name: Load the sample movies (only if the table is empty)
       community.postgresql.postgresql_db:
-        login_host: localhost
-        login_password: FdfsPass123
-        login_user: fdfs
-        name: fdfs
+        login_host: "{{ DB_HOST }}"
+        login_password: "{{ DB_PASSWORD }}"
+        login_user: "{{ DB_USER }}"
+        name: "{{ DB_NAME }}"
         state: restore
         target: /opt/fdfs/movie-service/db/seed.sql
       when: movie_rows.query_result[0].total == 0
       notify: restart movie svc
-
 
     - name: Install the systemd unit file for the movie service
       ansible.builtin.copy:

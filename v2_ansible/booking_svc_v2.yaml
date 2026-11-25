@@ -10,11 +10,11 @@
         name: "{{ item }}"
         state: present
       loop:
-      - python3 
-      - python3-venv 
-      - python3-pip 
-      - unzip 
-      - curl 
+      - python3
+      - python3-venv
+      - python3-pip
+      - unzip
+      - curl
       - postgresql-client
       - python3-psycopg2
 
@@ -31,7 +31,6 @@
         path: /opt/fdfs/booking-service
         state: directory
 
-    
     - name: Download the booking service release (v1)
       ansible.builtin.get_url:
         url: https://fdfs-artifacts-30b67175.s3.amazonaws.com/booking-service-v1.zip
@@ -40,27 +39,26 @@
     - name: Extract the booking service code (owned by fdfs)
       ansible.builtin.unarchive:
         remote_src: yes
-        dest: /opt/fdfs/booking-service 
+        dest: /opt/fdfs/booking-service
         src: /tmp/booking-service.zip
         owner: fdfs
         group: fdfs
-      notify: start the booking svc
-    
+      notify: restart booking svc
+
     - name: Create the virtualenv and install the Python requirements
       ansible.builtin.pip:
         virtualenv: /opt/fdfs/booking-service/venv
         virtualenv_command: python3 -m venv
         requirements: /opt/fdfs/booking-service/requirements.txt
-      notify: start the booking svc
-    
+      notify: restart booking svc
+
     - name: Make fdfs the owner of the booking service folder
       ansible.builtin.file:
         owner: fdfs
         path: /opt/fdfs/booking-service
         recurse: yes
         state: directory
-    
-    
+
     - name: Create the /etc/fdfs config folder
       ansible.builtin.file:
         path: /etc/fdfs
@@ -71,44 +69,40 @@
         src: booking_svc_v2_env.j2
         dest: /etc/fdfs/booking-service.env
         mode: '0600'
-      notify: start the booking svc
-
+      notify: restart booking svc
 
     - name: Check whether the bookings table already exists
       community.postgresql.postgresql_query:
-        login_db: fdfs
-        login_host: localhost
-        login_password: FdfsPass123
-        login_user: fdfs
+        login_db: "{{ DB_NAME }}"
+        login_host: "{{ DB_HOST }}"
+        login_password: "{{ DB_PASSWORD }}"
+        login_user: "{{ DB_USER }}"
         query: "SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'bookings'"
       register: bookings_table
-      notify: start the booking svc
 
     - name: Load the booking schema (only if the bookings table is missing)
       community.postgresql.postgresql_db:
-        login_host: localhost
-        login_password: FdfsPass123
-        login_user: fdfs
-        name: fdfs
+        login_host: "{{ DB_HOST }}"
+        login_password: "{{ DB_PASSWORD }}"
+        login_user: "{{ DB_USER }}"
+        name: "{{ DB_NAME }}"
         state: restore
         target: /opt/fdfs/booking-service/db/schema.sql
       when: bookings_table.rowcount == 0
-      notify: start the booking svc
+      notify: restart booking svc
 
     - name: Install the systemd unit file for the booking service
       ansible.builtin.copy:
         src: booking_svc_v2_service.file
         dest: /etc/systemd/system/fdfs-booking-service.service
-    
-      notify: start the booking svc
-    
+      notify: restart booking svc
+
     - name: Make sure the booking service is running and enabled at boot
       ansible.builtin.systemd_service:
         name: fdfs-booking-service
         state: started
         enabled: true
-    
-    
+
   handlers:
     - name: Reload systemd, restart the booking service and enable it at boot
       ansible.builtin.systemd_service:
@@ -116,4 +110,4 @@
         enabled: true
         name: fdfs-booking-service
         state: restarted
-      listen: start the booking svc
+      listen: restart booking svc
