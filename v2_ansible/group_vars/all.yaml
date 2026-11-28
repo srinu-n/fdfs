@@ -1,0 +1,7 @@
+data_machine_ip: 172.31.15.88
+app_machine_ip: 172.31.0.89
+web_machine_ip: 172.31.12.213
+
+
+# we can use all.yaml as file name so that ansible automatically loads the files 
+# if we use the different names we need to pass that file name in the vars_files in the playbook
