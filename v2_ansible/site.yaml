@@ -1,0 +1,16 @@
+# Deploy the whole FDFS stack in order: data -> app -> web
+# Usage: ansible-playbook -i inventory.ini site.yml
+
+# Data tier (must be up before the app services start)
+- import_playbook: postgres_v2.yaml
+- import_playbook: redis_v2.yaml
+- import_playbook: rabbit_mq_v2.yaml
+
+# App tier
+- import_playbook: movie_svc_v2.yaml
+- import_playbook: payments_svc_v2.yaml
+- import_playbook: booking_svc_v2.yaml
+- import_playbook: notification_svc_v2.yaml
+
+# Web tier
+- import_playbook: nginx_v2_svc.yaml
