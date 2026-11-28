@@ -39,7 +39,7 @@
       ansible.builtin.unarchive:
         src: /tmp/payment-service.zip
         dest: /tmp/payment-service
-    
+        remote_src: true
 
     - name: Build the JAR with Maven (tests skipped)
       ansible.builtin.command:
