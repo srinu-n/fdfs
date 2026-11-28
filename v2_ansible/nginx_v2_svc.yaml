@@ -35,8 +35,8 @@
         src: /tmp/frontend.zip
 
     - name: Copy the FDFS Nginx config to /etc/nginx/conf.d/fdfs.conf
-      ansible.builtin.copy:
-        src: nginx.conf
+      ansible.builtin.template:
+        src: nginx.conf.j2
         dest: /etc/nginx/conf.d/fdfs.conf
       notify: reload nginx
 
