@@ -58,8 +58,9 @@
       ansible.builtin.copy:
         src: /tmp/payment-service/target/payment-service.jar
         dest: /opt/fdfs/payment-service/app.jar
-    
-
+        remote_src: true
+  
+  
     
     - name: Create the /etc/fdfs config folder
       ansible.builtin.file:
@@ -71,12 +72,15 @@
       ansible.builtin.copy:
         src: payments_svc_v2_env.file
         dest: /etc/fdfs/payment-service.env
+        remote_src: true
+        
 
 
     - name: Install the systemd unit file for the payment service
       ansible.builtin.copy:
         src: payments_svc_v2_service.file
         dest: /etc/systemd/system/fdfs-payment-service.service
+        remote_src: true
 
     
     - name: Reload systemd, restart the payment service and enable it at boot
