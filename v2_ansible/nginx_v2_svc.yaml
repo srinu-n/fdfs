@@ -1,7 +1,7 @@
 - name: Install and configure the FDFS frontend (Nginx)
   become: true
-  hosts: all
-  connection: local
+  hosts: web
+  # connection: local
   tasks:
     - name: Install system packages for the frontend (Nginx, unzip, curl)
       ansible.builtin.apt:

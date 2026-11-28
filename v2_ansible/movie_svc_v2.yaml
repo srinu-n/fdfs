@@ -1,6 +1,6 @@
 - name: Install and run the FDFS movie service
-  hosts: all
-  connection: local
+  hosts: app
+  # connection: local
   become: true
   vars_files:
     - secrets.yaml
@@ -74,7 +74,7 @@
     - name: Check whether the movies table already exists
       community.postgresql.postgresql_query:
         login_db: "{{ DB_NAME }}"
-        login_host: "{{ DB_HOST }}"
+        login_host: "{{ data_machine_ip }}"
         login_password: "{{ DB_PASSWORD }}"
         login_user: "{{ DB_USER }}"
         query: "SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'movies'"
@@ -86,7 +86,7 @@
 
     - name: Load the database schema (only if the movies table is missing)
       community.postgresql.postgresql_db:
-        login_host: "{{ DB_HOST }}"
+        login_host: "{{ data_machine_ip }}"
         login_password: "{{ DB_PASSWORD }}"
         login_user: "{{ DB_USER }}"
         name: "{{ DB_NAME }}"
@@ -98,7 +98,7 @@
     - name: Count the movies already in the table
       community.postgresql.postgresql_query:
         login_db: "{{ DB_NAME }}"
-        login_host: "{{ DB_HOST }}"
+        login_host: "{{ data_machine_ip }}"
         login_password: "{{ DB_PASSWORD }}"
         login_user: "{{ DB_USER }}"
         query: "SELECT count(*) AS total FROM movies"
@@ -110,7 +110,7 @@
 
     - name: Load the sample movies (only if the table is empty)
       community.postgresql.postgresql_db:
-        login_host: "{{ DB_HOST }}"
+        login_host: "{{ data_machine_ip }}"
         login_password: "{{ DB_PASSWORD }}"
         login_user: "{{ DB_USER }}"
         name: "{{ DB_NAME }}"

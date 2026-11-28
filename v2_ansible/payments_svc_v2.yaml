@@ -1,6 +1,6 @@
 - name: Install and run the FDFS payment service
-  hosts: all
-  connection: local
+  hosts: app
+  # connection: local
   become: true
   tasks:
     - name: Install system packages for the payment service (JDK, Maven, unzip, curl)

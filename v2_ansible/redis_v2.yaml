@@ -1,7 +1,7 @@
 - name: Install and configure  redis for FDFS
-  hosts: all
+  hosts: data
   become: yes
-  connection: local
+  # connection: local
   tasks:
     - name: Install redis-server
       apt:

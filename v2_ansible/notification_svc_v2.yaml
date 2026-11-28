@@ -1,6 +1,6 @@
 - name: Install and run the FDFS notification service
-  hosts: all
-  connection: local
+  hosts: app
+  # connection: local
   become: true
   vars_files:
     - secrets.yaml
@@ -74,7 +74,7 @@
     - name: Check whether the notifications table already exists
       community.postgresql.postgresql_query:
         login_db: "{{ DB_NAME }}"
-        login_host: "{{ DB_HOST }}"
+        login_host: "{{ data_machine_ip }}"
         login_password: "{{ DB_PASSWORD }}"
         login_user: "{{ DB_USER }}"
         query: "SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'notifications'"
@@ -82,7 +82,7 @@
 
     - name: Load the notifications schema (only if the notifications table is missing)
       community.postgresql.postgresql_db:
-        login_host: "{{ DB_HOST }}"
+        login_host: "{{ data_machine_ip }}"
         login_password: "{{ DB_PASSWORD }}"
         login_user: "{{ DB_USER }}"
         name: "{{ DB_NAME }}"
